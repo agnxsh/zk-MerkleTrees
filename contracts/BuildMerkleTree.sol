@@ -68,7 +68,19 @@ contract BuildMerkleTree {
             _nextIndex != uint32(2) ** levels,
             "Merkle Tree is full. No more leaves can be added"
         );
+
         uint32 currIndex = _nextIndex;
+        bytes32 currentLevelHash = _leaf;
+        bytes32 left;
+        bytes32 right;
+
+        for(uint32 i=0; i<levels; i++){
+            if(currIndex % 2 == 0){
+                left = currentLevelHash;
+                right = zeros(i);
+                filledSubtrees[i] = currentLevelHash;
+            }
+        }
     }
 
     function zeros(uint256 i) public pure returns (bytes32) {
