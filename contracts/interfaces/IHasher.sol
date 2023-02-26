@@ -6,5 +6,5 @@ interface IHasher {
         uint256 inXL,
         uint256 inXR,
         uint256 k
-     ) external returns (uint256 XL, uint256 XR);
+     ) external pure returns (uint256 XL, uint256 XR);
 }
