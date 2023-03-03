@@ -27,8 +27,8 @@ contract BuildMerkleTree {
     mapping (uint256 => bytes32) public roots;
     
     uint32 public constant ROOTPREVSIZE = 30;
-    uint32 public constant currRootIndex = 0;
-    uint32 public constant nextIndex = 0;
+    uint32 public currRootIndex = 0;
+    uint32 public nextIndex = 0;
 
     constructor(uint32 _levels, IHasher _hasher) {
 
@@ -65,7 +65,7 @@ contract BuildMerkleTree {
     function _insert(bytes32 _leaf) internal returns (uint32 index){
         uint32 _nextIndex = nextIndex;
         require(
-            _nextIndex != uint32(2) ** levels,
+            _nextIndex != 2 ** levels,
             "Merkle Tree is full. No more leaves can be added"
         );
 
@@ -80,9 +80,47 @@ contract BuildMerkleTree {
                 right = zeros(i);
                 filledSubtrees[i] = currentLevelHash;
             }
+            else {
+                left = filledSubtrees[i];
+                right = currentLevelHash;
+            }
+            currentLevelHash = hashLeftRight(uint256(left),uint256(right));
+            currIndex /= 2;
         }
+
+        uint32 newRootIndex = (currRootIndex + 1) % ROOTPREVSIZE;
+        currRootIndex = newRootIndex;
+        roots[newRootIndex] = currentLevelHash;
+        nextIndex = _nextIndex + 1;
+        return _nextIndex;
     }
 
+    /**
+     * @notice Checking if the root exists in the previous nodes or not
+     */
+
+    function isKnownRoot(bytes32 _root) public view returns (bool){
+        
+        if(_root == 0){
+            return false;
+        }
+        uint32 _currRootIndex = currRootIndex;
+        uint32 i = _currRootIndex;
+
+        do{
+            if(_root==roots[i]){
+                return true;
+            }
+            if(i==0){
+                i = ROOTPREVSIZE;
+            }
+        } while( i!= _currRootIndex);
+        return false;
+    }
+
+    function getLastRoot() public view returns (bytes32){
+        return roots[currRootIndex];
+    }
     function zeros(uint256 i) public pure returns (bytes32) {
         if (i == 0)
             return
